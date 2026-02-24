@@ -26,7 +26,7 @@ jobs:
 
       - name: Create ZIP archive
         working-directory: app/build/macos/Build/Products/Release
-        run: zip -r ${{ github.workspace }}/code-doc-tool-macos.zip "code_doc_tool.app"
+        run: zip -r ${{ github.workspace }}/code-doc-tool-macos.zip "app.app"
 
       - name: Upload Release Asset
         uses: softprops/action-gh-release@v1
