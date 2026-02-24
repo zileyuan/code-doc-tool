@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../domain/app_state.dart';
 import '../../domain/models/source_file.dart';
+import '../../domain/models/scan_config.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -197,7 +198,7 @@ class _HomePageState extends State<HomePage> {
                           child: TextField(
                             decoration: const InputDecoration(
                               labelText: '版本号',
-                              hintText: '例如：1.0.0',
+                              hintText: '例如：1.0',
                               border: OutlineInputBorder(),
                               isDense: true,
                             ),
@@ -682,6 +683,13 @@ class _HomePageState extends State<HomePage> {
       return;
     }
 
+    if (state.version.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('请输入版本号')));
+      return;
+    }
+
     debugPrint('===== Opening save file dialog =====');
     final outputPath = await FilePicker.platform.saveFile(
       dialogTitle: '保存Word文档',
@@ -697,31 +705,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   List<String> _getCommonExtensions() {
-    return [
-      '.dart',
-      '.java',
-      '.kt',
-      '.cpp',
-      '.c',
-      '.h',
-      '.hpp',
-      '.cs',
-      '.swift',
-      '.go',
-      '.rs',
-      '.js',
-      '.ts',
-      '.jsx',
-      '.tsx',
-      '.py',
-      '.rb',
-      '.sh',
-      '.bash',
-      '.html',
-      '.htm',
-      '.xml',
-      '.sql',
-    ];
+    return ScanConfig.defaultExtensions.toList()..sort();
   }
 
   void _toggleExtension(AppState state, String ext, bool selected) {
