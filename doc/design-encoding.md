@@ -56,6 +56,15 @@ class EncodingResult {
 }
 ```
 
+> **当前实现说明**: 
+> 为简化实现，`EncodingDetector` 直接返回编码名称字符串（如 `"UTF-8"`），未返回 `EncodingResult` 对象。
+> 
+> 置信度功能暂未实现，后续可根据需要扩展：
+> - BOM 检测：置信度 1.0
+> - UTF-8 验证通过：置信度 0.9
+> - GBK 统计检测：置信度 0.7
+> - 默认值：置信度 0.5
+
 #### EncodingInfo
 ```dart
 class EncodingInfo {

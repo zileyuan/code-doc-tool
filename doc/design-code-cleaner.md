@@ -57,29 +57,17 @@ class CleanCode {
     required this.cleanedLines,
     required this.removedComments,
     required this.removedEmptyLines,
-  });
-  
-  double get compressionRatio => 
-    cleanedContent.length / originalContent.length;
+});
+
+double get compressionRatio => 
+  cleanedContent.length / originalContent.length;
 }
 ```
 
-#### CleaningConfig
-```dart
-class CleaningConfig {
-  final bool removeComments;         // 是否移除注释
-  final bool removeEmptyLines;       // 是否移除空行
-  final bool preserveDocComments;    // 是否保留文档注释
-  final bool trimWhitespace;         // 是否去除行尾空白
-  
-  CleaningConfig({
-    this.removeComments = true,
-    this.removeEmptyLines = true,
-    this.preserveDocComments = false,
-    this.trimWhitespace = true,
-  });
-}
-```
+> **注意**: 当前实现直接移除所有注释和空行，无需配置选项。`CleaningConfig` 类未实现，所有清洗参数为固定值：
+> - `removeComments = true` - 移除所有注释
+> - `removeEmptyLines = true` - 移除空行
+> - `trimWhitespace = true` - 去除行尾空白
 
 ## 3. 清洗策略
 
@@ -471,7 +459,17 @@ class StreamCodeCleaner {
 
 ## 5. 性能优化
 
-### 5.1 使用 Isolate
+> **当前实现说明**: Isolate 并发处理暂未实现。当前为同步处理：
+> - 代码清洗在主线程执行
+> - 大文件可能导致界面卡顿
+> - 批量处理使用 `Future.wait` 但仍在主线程
+>
+> 后续优化建议：
+> - 使用 `compute()` 函数处理大文件
+> - 使用 `Isolate.run()` 进行后台处理
+> - 实现进度回调避免界面冻结
+
+### 5.1 使用 Isolate (规划中)
 ```dart
 class IsolateCodeCleaner {
   Future<CleanCode> cleanInIsolate(String content, String extension) async {

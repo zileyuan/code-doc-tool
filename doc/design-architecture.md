@@ -214,7 +214,16 @@ ErrorHandler
 
 ## 6. 并发与性能设计
 
-### 6.1 Isolate 使用
+> **当前实现说明**: Isolate 并发处理暂未实现。当前为同步处理：
+> - 所有操作在主线程执行
+> - 大文件可能导致界面卡顿
+>
+> 后续优化建议：
+> - 使用 `compute()` 或 `Isolate.run()` 进行后台处理
+> - 实现进度回调避免界面冻结
+> - 添加取消操作支持
+
+### 6.1 Isolate 使用 (规划中)
 ```dart
 // 大文件处理使用 Isolate
 Future<List<String>> processLargeFile(String path) async {
