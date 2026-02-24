@@ -93,6 +93,9 @@ class UpdateService {
       final filePath = '${tempDir.path}/$fileName';
       final file = File(filePath);
 
+      print('Download starting: $url');
+      print('Target path: $filePath');
+
       if (await file.exists()) {
         await file.delete();
       }
@@ -100,11 +103,15 @@ class UpdateService {
       final request = http.Request('GET', Uri.parse(url));
       final response = await http.Client().send(request);
 
+      print('Response status: ${response.statusCode}');
+
       if (response.statusCode != 200) {
+        print('Download failed: status code ${response.statusCode}');
         return null;
       }
 
       final contentLength = response.contentLength ?? 0;
+      print('Content length: $contentLength');
       int downloaded = 0;
 
       final sink = file.openWrite();
@@ -127,6 +134,8 @@ class UpdateService {
         await sink.close();
       }
 
+      print('Download completed, total bytes: $downloaded');
+
       if (isCancelled()) {
         if (await file.exists()) {
           await file.delete();
@@ -134,17 +143,24 @@ class UpdateService {
         return null;
       }
 
-      if (await file.exists() && await file.length() > 0) {
-        return filePath;
+      if (await file.exists()) {
+        final length = await file.length();
+        print('File exists, size: $length');
+        if (length > 0) {
+          return filePath;
+        }
       }
+      print('File check failed');
       return null;
     } catch (e) {
+      print('Download error: $e');
       return null;
     }
   }
 
   Future<String?> extractAndPrepare(String zipPath, String version) async {
     try {
+      print('Extracting: $zipPath');
       final tempDir = await getTemporaryDirectory();
       final extractDirName = 'code-doc-tool-${version}';
       final extractDir = Directory('${tempDir.path}/$extractDirName');
@@ -152,9 +168,14 @@ class UpdateService {
         await extractDir.delete(recursive: true);
       }
       await extractDir.create();
+      print('Extract to: ${extractDir.path}');
 
-      final bytes = await File(zipPath).readAsBytes();
+      final zipFile = File(zipPath);
+      final bytes = await zipFile.readAsBytes();
+      print('Zip file size: ${bytes.length}');
+
       final archive = ZipDecoder().decodeBytes(bytes);
+      print('Archive files count: ${archive.length}');
 
       for (final file in archive) {
         final filePath = '${extractDir.path}/${file.name}';
@@ -167,8 +188,10 @@ class UpdateService {
         }
       }
 
+      print('Extraction completed');
       return extractDir.path;
     } catch (e) {
+      print('Extract error: $e');
       return null;
     }
   }
