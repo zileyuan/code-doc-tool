@@ -459,17 +459,7 @@ class StreamCodeCleaner {
 
 ## 5. 性能优化
 
-> **当前实现说明**: Isolate 并发处理暂未实现。当前为同步处理：
-> - 代码清洗在主线程执行
-> - 大文件可能导致界面卡顿
-> - 批量处理使用 `Future.wait` 但仍在主线程
->
-> 后续优化建议：
-> - 使用 `compute()` 函数处理大文件
-> - 使用 `Isolate.run()` 进行后台处理
-> - 实现进度回调避免界面冻结
-
-### 5.1 使用 Isolate (规划中)
+### 5.1 使用 Isolate
 ```dart
 class IsolateCodeCleaner {
   Future<CleanCode> cleanInIsolate(String content, String extension) async {
