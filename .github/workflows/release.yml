@@ -24,6 +24,11 @@ jobs:
         working-directory: app
         run: flutter build macos --release
 
+      - name: Copy update script
+        run: |
+          cp app/macos/update.sh app/build/macos/Build/Products/Release/code_doc_tool.app/
+          chmod +x app/build/macos/Build/Products/Release/code_doc_tool.app/update.sh
+
       - name: Create ZIP archive
         working-directory: app/build/macos/Build/Products/Release
         run: zip -r ${{ github.workspace }}/code-doc-tool-macos.zip "code_doc_tool.app"
@@ -53,6 +58,9 @@ jobs:
       - name: Build Windows
         working-directory: app
         run: flutter build windows --release
+
+      - name: Copy update script
+        run: cp app/windows/update.bat app/build/windows/x64/runner/Release/
 
       - name: Create ZIP archive
         working-directory: app/build/windows/x64/runner/Release

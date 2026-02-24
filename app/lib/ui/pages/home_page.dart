@@ -1280,7 +1280,11 @@ class _UpdateDialogState extends State<UpdateDialog> {
         return [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('关闭'),
+            child: const Text('稍后安装'),
+          ),
+          ElevatedButton(
+            onPressed: () => state.installUpdate(),
+            child: const Text('立即安装'),
           ),
         ];
 

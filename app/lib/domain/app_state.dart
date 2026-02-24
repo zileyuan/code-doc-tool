@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'models/source_file.dart';
 import 'models/clean_code.dart';
@@ -37,6 +38,7 @@ class AppState extends ChangeNotifier {
   double downloadProgress = 0.0;
   ReleaseInfo? latestRelease;
   String? downloadedUpdatePath;
+  String? extractedUpdatePath;
   bool _cancelDownload = false;
 
   final CleanService _cleanService;
@@ -271,12 +273,37 @@ class AppState extends ChangeNotifier {
         return;
       }
 
+      extractedUpdatePath = extractPath;
       updateState = UpdateState.ready;
-      updateMessage = '更新已准备就绪\n解压路径: $extractPath';
+      updateMessage = '更新已准备就绪，点击"立即安装"完成更新';
       notifyListeners();
     } catch (e) {
       updateState = UpdateState.error;
       updateMessage = '下载更新失败: $e';
+      notifyListeners();
+    }
+  }
+
+  Future<void> installUpdate() async {
+    if (extractedUpdatePath == null) return;
+
+    try {
+      final success = await _updateService.runUpdateScript(
+        extractedUpdatePath!,
+      );
+      if (success) {
+        updateMessage = '正在安装更新，应用即将关闭...';
+        notifyListeners();
+        await Future.delayed(const Duration(seconds: 1));
+        exit(0);
+      } else {
+        updateState = UpdateState.error;
+        updateMessage = '启动更新脚本失败';
+        notifyListeners();
+      }
+    } catch (e) {
+      updateState = UpdateState.error;
+      updateMessage = '安装更新失败: $e';
       notifyListeners();
     }
   }

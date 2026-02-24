@@ -172,4 +172,43 @@ class UpdateService {
       return null;
     }
   }
+
+  String getCurrentAppPath() {
+    final executablePath = Platform.resolvedExecutable;
+    if (Platform.isMacOS) {
+      return executablePath.replaceAll('/Contents/MacOS/code_doc_tool', '');
+    } else {
+      return File(executablePath).parent.path;
+    }
+  }
+
+  Future<bool> runUpdateScript(String extractPath) async {
+    try {
+      final currentAppPath = getCurrentAppPath();
+      String scriptPath;
+      List<String> args;
+
+      if (Platform.isMacOS) {
+        final newAppPath = '$extractPath/code_doc_tool.app';
+        scriptPath = '$newAppPath/update.sh';
+        args = [currentAppPath, newAppPath];
+
+        await Process.run('chmod', ['+x', scriptPath]);
+      } else {
+        scriptPath = '$extractPath/update.bat';
+        args = [currentAppPath, extractPath];
+      }
+
+      final scriptFile = File(scriptPath);
+      if (!await scriptFile.exists()) {
+        return false;
+      }
+
+      await Process.start(scriptPath, args, mode: ProcessStartMode.detached);
+
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
 }
