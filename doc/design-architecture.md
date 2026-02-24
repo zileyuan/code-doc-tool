@@ -215,20 +215,27 @@ ErrorHandler
 ## 6. 并发与性能设计
 
 ### 6.1 Isolate 使用
+
+对于大文件（超过 100KB），使用 Isolate 在后台线程处理，避免阻塞 UI：
+
 ```dart
 // 大文件处理使用 Isolate
-Future<List<String>> processLargeFile(String path) async {
-  return await compute(_processInIsolate, path);
-}
+class CodeCleaner {
+  static const int isolateThreshold = 100 * 1024; // 100KB
 
-List<String> _processInIsolate(String path) {
-  // 在独立 Isolate 中处理
-  final file = File(path);
-  final content = file.readAsBytesSync();
-  // ... 清洗逻辑
-  return cleanedLines;
+  Future<CleanCode> clean(String content, String fileName, String extension) async {
+    if (content.length > isolateThreshold) {
+      return await Isolate.run(() => _cleanInIsolate(...));
+    }
+    return _cleanSync(content, fileName, extension);
+  }
 }
 ```
+
+**优点**：
+- 大文件处理不阻塞 UI
+- 保持界面响应流畅
+- 自动根据文件大小选择处理方式
 
 ### 6.2 Stream 处理
 ```dart

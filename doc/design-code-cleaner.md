@@ -460,26 +460,28 @@ class StreamCodeCleaner {
 ## 5. 性能优化
 
 ### 5.1 使用 Isolate
+
+对于大文件（超过 100KB），自动使用 Isolate 在后台线程处理，避免阻塞 UI：
+
 ```dart
-class IsolateCodeCleaner {
-  Future<CleanCode> cleanInIsolate(String content, String extension) async {
-    return await compute(_cleanInIsolate, {
-      'content': content,
-      'extension': extension,
+class CodeCleaner {
+  static const int isolateThreshold = 100 * 1024; // 100KB
+
+  Future<CleanCode> clean(String content, String fileName, String extension) async {
+    if (content.length > isolateThreshold) {
+      return await cleanInIsolate(content, fileName, extension);
+    }
+    return _cleanSync(content, fileName, extension);
+  }
+
+  Future<CleanCode> cleanInIsolate(String content, String fileName, String extension) async {
+    return await Isolate.run(() {
+      return _cleanInIsolate(_IsolateParams(
+        content: content,
+        fileName: fileName,
+        extension: extension,
+      ));
     });
-  }
-  
-  static CleanCode _cleanInIsolate(Map<String, dynamic> params) {
-    final content = params['content'] as String;
-    final extension = params['extension'] as String;
-    
-    final cleaner = CodeCleaner();
-    // 注意：Isolate 中不能使用 await，需要同步处理
-    return _cleanSync(content, extension);
-  }
-  
-  static CleanCode _cleanSync(String content, String extension) {
-    // 同步清洗逻辑
   }
 }
 ```

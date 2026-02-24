@@ -1,3 +1,4 @@
+import 'dart:isolate';
 import '../../domain/models/clean_code.dart';
 
 abstract class CleanStrategy {
@@ -7,6 +8,7 @@ abstract class CleanStrategy {
 
 class CodeCleaner {
   final Map<String, CleanStrategy> _strategies;
+  static const int isolateThreshold = 100 * 1024; // 100KB 以上使用 Isolate
 
   CodeCleaner({Map<String, CleanStrategy>? strategies})
     : _strategies = strategies ?? _defaultStrategies();
@@ -26,6 +28,13 @@ class CodeCleaner {
     String fileName,
     String extension,
   ) async {
+    if (content.length > isolateThreshold) {
+      return await cleanInIsolate(content, fileName, extension);
+    }
+    return _cleanSync(content, fileName, extension);
+  }
+
+  CleanCode _cleanSync(String content, String fileName, String extension) {
     final languages = LanguageMapper.getLanguages(extension);
 
     var currentContent = content;
@@ -53,6 +62,51 @@ class CodeCleaner {
     );
   }
 
+  Future<CleanCode> cleanInIsolate(
+    String content,
+    String fileName,
+    String extension,
+  ) async {
+    return await Isolate.run(() {
+      return _cleanInIsolate(
+        _IsolateParams(
+          content: content,
+          fileName: fileName,
+          extension: extension,
+        ),
+      );
+    });
+  }
+
+  static CleanCode _cleanInIsolate(_IsolateParams params) {
+    final strategies = _defaultStrategies();
+    final languages = LanguageMapper.getLanguages(params.extension);
+
+    var currentContent = params.content;
+
+    for (final language in languages) {
+      final strategy = strategies[language] ?? strategies['c-style']!;
+      currentContent = strategy.removeComments(currentContent);
+    }
+
+    currentContent = _removeEmptyLinesStatic(currentContent);
+    currentContent = _trimWhitespaceStatic(currentContent);
+    currentContent = _convertTabsToSpacesStatic(currentContent);
+
+    final originalLines = params.content.split('\n').length;
+    final cleanedLines = currentContent.split('\n').length;
+
+    return CleanCode(
+      fileName: params.fileName,
+      originalContent: params.content,
+      cleanedContent: currentContent,
+      originalLines: originalLines,
+      cleanedLines: cleanedLines,
+      removedComments: (params.content.length - currentContent.length) ~/ 10,
+      removedEmptyLines: originalLines - cleanedLines,
+    );
+  }
+
   String _removeEmptyLines(String content) {
     return content
         .split('\n')
@@ -60,7 +114,18 @@ class CodeCleaner {
         .join('\n');
   }
 
+  static String _removeEmptyLinesStatic(String content) {
+    return content
+        .split('\n')
+        .where((line) => line.trim().isNotEmpty)
+        .join('\n');
+  }
+
   String _trimWhitespace(String content) {
+    return content.split('\n').map((line) => line.trimRight()).join('\n');
+  }
+
+  static String _trimWhitespaceStatic(String content) {
     return content.split('\n').map((line) => line.trimRight()).join('\n');
   }
 
@@ -77,9 +142,34 @@ class CodeCleaner {
         .join('\n');
   }
 
+  static String _convertTabsToSpacesStatic(String content) {
+    return content
+        .split('\n')
+        .map((line) {
+          final leadingMatch = RegExp(r'^[\t ]+').firstMatch(line);
+          if (leadingMatch == null) return line;
+          final leading = leadingMatch.group(0)!;
+          final convertedLeading = leading.replaceAll('\t', '  ');
+          return convertedLeading + line.substring(leading.length);
+        })
+        .join('\n');
+  }
+
   int _estimateRemovedComments(String original, String cleaned) {
     return (original.length - cleaned.length) ~/ 10;
   }
+}
+
+class _IsolateParams {
+  final String content;
+  final String fileName;
+  final String extension;
+
+  _IsolateParams({
+    required this.content,
+    required this.fileName,
+    required this.extension,
+  });
 }
 
 class LanguageMapper {
