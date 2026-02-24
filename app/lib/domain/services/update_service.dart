@@ -96,6 +96,11 @@ class UpdateService {
       print('Download starting: $url');
       print('Target path: $filePath');
 
+      // 确保目录存在
+      if (!await file.parent.exists()) {
+        await file.parent.create(recursive: true);
+      }
+
       if (await file.exists()) {
         await file.delete();
       }
