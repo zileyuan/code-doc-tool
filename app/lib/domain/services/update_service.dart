@@ -201,12 +201,7 @@ class UpdateService {
         scriptPath = '$extractPath/update/update.sh';
         args = [currentAppPath, newAppPath];
 
-        print('Current app path: $currentAppPath');
-        print('New app path: $newAppPath');
-        print('Script path: $scriptPath');
-
         final scriptFile = File(scriptPath);
-        print('Script exists: ${await scriptFile.exists()}');
         if (!await scriptFile.exists()) {
           return false;
         }
@@ -221,7 +216,6 @@ class UpdateService {
 
       return true;
     } catch (e) {
-      print('Run update script error: $e');
       return false;
     }
   }
