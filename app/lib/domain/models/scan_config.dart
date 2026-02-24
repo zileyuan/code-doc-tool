@@ -52,6 +52,20 @@ class ScanConfig {
     'out',
     '.idea',
     '.vscode',
+    '.dart_tool',
+    '.gradle',
+    'Pods',
+    'vendor',
+    '.cache',
+    '.next',
+    '.nuxt',
+    '.yarn',
+    '.pnpm',
+    'DerivedData',
+    'coverage',
+    'logs',
+    'tmp',
+    'temp',
   };
 
   ScanConfig copyWith({
