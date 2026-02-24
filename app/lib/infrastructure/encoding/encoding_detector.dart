@@ -1,17 +1,35 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+class EncodingResult {
+  final String encoding;
+  final double confidence;
+  final bool hasBOM;
+
+  EncodingResult({
+    required this.encoding,
+    required this.confidence,
+    this.hasBOM = false,
+  });
+
+  bool get isHighConfidence => confidence > 0.8;
+
+  @override
+  String toString() =>
+      'EncodingResult($encoding, confidence: $confidence, hasBOM: $hasBOM)';
+}
+
 class EncodingDetector {
   final int sampleSize;
 
   EncodingDetector({this.sampleSize = 4096});
 
-  Future<String> detect(File file) async {
+  Future<EncodingResult> detect(File file) async {
     try {
       final bytes = await _readSample(file);
-      return await _detectFromBytes(bytes);
+      return _detectFromBytes(bytes);
     } catch (e) {
-      return 'UTF-8';
+      return EncodingResult(encoding: 'UTF-8', confidence: 0.5);
     }
   }
 
@@ -27,20 +45,22 @@ class EncodingDetector {
     }
   }
 
-  Future<String> _detectFromBytes(Uint8List bytes) async {
+  EncodingResult _detectFromBytes(Uint8List bytes) {
     if (_hasBOM(bytes)) {
-      return _detectBOM(bytes);
+      final encoding = _detectBOM(bytes);
+      return EncodingResult(encoding: encoding, confidence: 1.0, hasBOM: true);
     }
 
     if (_isValidUTF8(bytes)) {
-      return 'UTF-8';
+      return EncodingResult(encoding: 'UTF-8', confidence: 0.9, hasBOM: false);
     }
 
-    if (_looksLikeGBK(bytes)) {
-      return 'GBK';
+    final gbkResult = _analyzeGBK(bytes);
+    if (gbkResult != null) {
+      return gbkResult;
     }
 
-    return 'UTF-8';
+    return EncodingResult(encoding: 'UTF-8', confidence: 0.5, hasBOM: false);
   }
 
   bool _hasBOM(Uint8List bytes) {
@@ -104,7 +124,7 @@ class EncodingDetector {
     }
   }
 
-  bool _looksLikeGBK(Uint8List bytes) {
+  EncodingResult? _analyzeGBK(Uint8List bytes) {
     int highBytes = 0;
     for (final byte in bytes) {
       if (byte >= 0x80) {
@@ -113,7 +133,7 @@ class EncodingDetector {
     }
 
     if (highBytes < bytes.length * 0.1) {
-      return false;
+      return null;
     }
 
     int validGBKPairs = 0;
@@ -133,6 +153,17 @@ class EncodingDetector {
       i++;
     }
 
-    return validGBKPairs > bytes.length * 0.05;
+    if (validGBKPairs < bytes.length * 0.05) {
+      return null;
+    }
+
+    final ratio = validGBKPairs / (highBytes / 2);
+    final confidence = (0.5 + ratio * 0.5).clamp(0.5, 0.85);
+
+    return EncodingResult(
+      encoding: 'GBK',
+      confidence: confidence,
+      hasBOM: false,
+    );
   }
 }

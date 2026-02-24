@@ -57,7 +57,8 @@ class FileScanner {
 
     String encoding = 'UTF-8';
     if (config.detectEncoding) {
-      encoding = await encodingDetector.detect(file);
+      final result = await encodingDetector.detect(file);
+      encoding = result.encoding;
     }
 
     final stat = await file.stat();
