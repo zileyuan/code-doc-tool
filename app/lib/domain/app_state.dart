@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'models/source_file.dart';
 import 'models/clean_code.dart';
 import 'models/export_config.dart';
@@ -18,6 +19,7 @@ class AppState extends ChangeNotifier {
 
   String softwareName = '';
   String version = '1.0';
+  String appVersion = '1.0.0';
   int linesPerPage = 50;
   int maxPages = 60;
 
@@ -48,7 +50,19 @@ class AppState extends ChangeNotifier {
   AppState()
     : _cleanService = CleanService(),
       _exportService = ExportService(),
-      _updateService = UpdateService();
+      _updateService = UpdateService() {
+    _loadAppVersion();
+  }
+
+  Future<void> _loadAppVersion() async {
+    try {
+      final info = await PackageInfo.fromPlatform();
+      appVersion = info.version;
+      notifyListeners();
+    } catch (e) {
+      appVersion = '1.0.0';
+    }
+  }
 
   int get maxTotalLines => maxPages * linesPerPage;
   int get totalSelectedFiles => selectedFiles.length;
@@ -204,7 +218,10 @@ class AppState extends ChangeNotifier {
         return;
       }
 
-      if (_updateService.isNewerVersion('v$version', latestRelease!.version)) {
+      if (_updateService.isNewerVersion(
+        'v$appVersion',
+        latestRelease!.version,
+      )) {
         updateState = UpdateState.available;
         updateMessage = '发现新版本 ${latestRelease!.version}';
       } else {

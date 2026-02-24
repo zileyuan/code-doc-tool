@@ -1067,46 +1067,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  IconData _getFileIcon(String extension) {
-    switch (extension.toLowerCase()) {
-      case '.dart':
-        return Icons.code;
-      case '.java':
-      case '.kt':
-        return Icons.coffee;
-      case '.js':
-      case '.ts':
-      case '.jsx':
-      case '.tsx':
-        return Icons.javascript;
-      case '.py':
-        return Icons.psychology;
-      case '.go':
-        return Icons.code;
-      case '.rs':
-        return Icons.code;
-      case '.html':
-      case '.htm':
-        return Icons.html;
-      case '.css':
-        return Icons.style;
-      case '.json':
-        return Icons.data_object;
-      case '.yaml':
-      case '.yml':
-        return Icons.list_alt;
-      case '.md':
-        return Icons.description;
-      case '.sql':
-        return Icons.storage;
-      case '.sh':
-      case '.bash':
-        return Icons.terminal;
-      default:
-        return Icons.insert_drive_file;
-    }
-  }
-
   void _showUpdateDialog(BuildContext context) {
     showDialog(context: context, builder: (context) => const UpdateDialog());
   }
@@ -1140,7 +1100,7 @@ class _UpdateDialogState extends State<UpdateDialog> {
               const Text('检查更新'),
               const Spacer(),
               Text(
-                '当前版本: v${state.version}',
+                '当前版本: v${state.appVersion}',
                 style: TextStyle(fontSize: 12, color: Colors.grey[600]),
               ),
             ],
