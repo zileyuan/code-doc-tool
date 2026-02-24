@@ -90,23 +90,37 @@ class UpdateService {
       final filePath = '${tempDir.path}/$fileName';
       final file = File(filePath);
 
+      if (await file.exists()) {
+        await file.delete();
+      }
+
       final request = http.Request('GET', Uri.parse(url));
       final response = await http.Client().send(request);
+
+      if (response.statusCode != 200) {
+        return null;
+      }
 
       final contentLength = response.contentLength ?? 0;
       int downloaded = 0;
 
       final sink = file.openWrite();
-      await response.stream.listen((chunk) {
-        sink.add(chunk);
-        downloaded += chunk.length;
-        if (contentLength > 0) {
-          onProgress(downloaded / contentLength);
+      try {
+        await for (final chunk in response.stream) {
+          sink.add(chunk);
+          downloaded += chunk.length;
+          if (contentLength > 0) {
+            onProgress(downloaded / contentLength);
+          }
         }
-      }).asFuture();
-      await sink.close();
+      } finally {
+        await sink.close();
+      }
 
-      return filePath;
+      if (await file.exists() && await file.length() > 0) {
+        return filePath;
+      }
+      return null;
     } catch (e) {
       return null;
     }
