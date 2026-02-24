@@ -17,7 +17,7 @@ class AppState extends ChangeNotifier {
   List<String> sourceDirectories = [];
 
   String softwareName = '';
-  String version = '1.0.0';
+  String version = '1.0';
   int linesPerPage = 50;
   int maxPages = 60;
 
