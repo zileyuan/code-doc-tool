@@ -1,0 +1,66 @@
+name: Build and Release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.38.9'
+          channel: 'stable'
+
+      - name: Get dependencies
+        working-directory: app
+        run: flutter pub get
+
+      - name: Build macOS
+        working-directory: app
+        run: flutter build macos --release
+
+      - name: Create ZIP archive
+        working-directory: app/build/macos/Build/Products/Release
+        run: zip -r ${{ github.workspace }}/code-doc-tool-macos.zip "code_doc_tool.app"
+
+      - name: Upload Release Asset
+        uses: softprops/action-gh-release@v1
+        with:
+          files: code-doc-tool-macos.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.38.9'
+          channel: 'stable'
+
+      - name: Get dependencies
+        working-directory: app
+        run: flutter pub get
+
+      - name: Build Windows
+        working-directory: app
+        run: flutter build windows --release
+
+      - name: Create ZIP archive
+        working-directory: app/build/windows/x64/runner/Release
+        run: Compress-Archive -Path * -DestinationPath ${{ github.workspace }}/code-doc-tool-windows.zip
+
+      - name: Upload Release Asset
+        uses: softprops/action-gh-release@v1
+        with:
+          files: code-doc-tool-windows.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
