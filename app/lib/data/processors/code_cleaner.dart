@@ -185,6 +185,58 @@ class PythonCleanStrategy implements CleanStrategy {
     var i = 0;
 
     while (i < code.length) {
+      if (i < code.length - 2) {
+        final threeChars = code.substring(i, i + 3);
+        if (threeChars == '"""' || threeChars == "'''") {
+          final quote = threeChars;
+          buffer.write(quote);
+          i += 3;
+          while (i < code.length - 2) {
+            if (code.substring(i, i + 3) == quote) {
+              buffer.write(quote);
+              i += 3;
+              break;
+            }
+            if (code[i] == '\\') {
+              buffer.write(code[i]);
+              i++;
+              if (i < code.length) {
+                buffer.write(code[i]);
+                i++;
+              }
+            } else {
+              buffer.write(code[i]);
+              i++;
+            }
+          }
+          continue;
+        }
+      }
+
+      if (code[i] == '"' || code[i] == "'") {
+        final quote = code[i];
+        buffer.write(code[i]);
+        i++;
+        while (i < code.length && code[i] != quote) {
+          if (code[i] == '\\') {
+            buffer.write(code[i]);
+            i++;
+            if (i < code.length) {
+              buffer.write(code[i]);
+              i++;
+            }
+          } else {
+            buffer.write(code[i]);
+            i++;
+          }
+        }
+        if (i < code.length) {
+          buffer.write(code[i]);
+          i++;
+        }
+        continue;
+      }
+
       if (code[i] == '#') {
         while (i < code.length && code[i] != '\n') {
           i++;

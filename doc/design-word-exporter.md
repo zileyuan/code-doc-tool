@@ -53,28 +53,26 @@
 class ExportConfig {
   final String softwareName;        // 软件名称
   final String version;             // 版本号
-  final int linesPerPage;           // 每页行数
-  final int maxPages;               // 最大页数限制（默认60页）
+  final int linesPerPage;           // 每页行数（固定50）
+  final int maxPages;               // 最大页数（固定60）
   final String fontName;            // 字体名称
-  final int fontSize;               // 字体大小（磅）
-  final bool showLineNumber;        // 是否显示行号
-  final bool showFileName;          // 是否显示文件名
+  final int fontSize;               // 字体大小（固定10磅）
   
   ExportConfig({
     required this.softwareName,
     required this.version,
-    this.linesPerPage = 50,
-    this.maxPages = 60,
+    this.linesPerPage = 50,   // 固定值，不可配置
+    this.maxPages = 60,       // 固定值，不可配置
     this.fontName = 'Consolas',
-    this.fontSize = 10,
-    this.showLineNumber = false,
-    this.showFileName = true,
+    this.fontSize = 10,       // 固定值，不可配置
   });
   
-  // 计算最大允许的总行数
+  // 计算最大允许的总行数（3000行）
   int get maxTotalLines => maxPages * linesPerPage;
 }
 ```
+
+> **注意**: 根据需求变更，`linesPerPage`、`maxPages` 和 `fontSize` 为固定值，用户无需配置。
 
 #### PageLayout
 ```dart
