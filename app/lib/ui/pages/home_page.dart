@@ -197,7 +197,7 @@ class _HomePageState extends State<HomePage> {
                         Expanded(
                           child: TextField(
                             decoration: const InputDecoration(
-                              labelText: '版本号',
+                              labelText: '版本号 *',
                               hintText: '例如：1.0',
                               border: OutlineInputBorder(),
                               isDense: true,
@@ -574,7 +574,6 @@ class _HomePageState extends State<HomePage> {
         '${file.displaySize}  |  ${file.encoding}  |  ${file.relativePath}',
         style: TextStyle(fontSize: 11, color: Colors.grey[600]),
       ),
-      secondary: Icon(_getFileIcon(file.extension), size: 20),
       dense: true,
       controlAffinity: ListTileControlAffinity.leading,
     );
