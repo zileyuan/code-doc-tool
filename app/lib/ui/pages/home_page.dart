@@ -1145,7 +1145,7 @@ class _UpdateDialogState extends State<UpdateDialog> {
               ),
             ],
           ),
-          content: SizedBox(width: 400, child: _buildContent(state)),
+          content: SizedBox(width: 500, child: _buildContent(state)),
           actions: _buildActions(state),
         );
       },
@@ -1167,7 +1167,7 @@ class _UpdateDialogState extends State<UpdateDialog> {
       case UpdateState.available:
         return Column(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Row(
               children: [
@@ -1184,7 +1184,8 @@ class _UpdateDialogState extends State<UpdateDialog> {
             ),
             const SizedBox(height: 12),
             Container(
-              constraints: const BoxConstraints(maxHeight: 150),
+              width: double.infinity,
+              constraints: const BoxConstraints(maxHeight: 200),
               decoration: BoxDecoration(
                 color: Colors.grey[100],
                 borderRadius: BorderRadius.circular(8),
