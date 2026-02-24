@@ -89,7 +89,7 @@ class UpdateService {
     try {
       final tempDir = await getTemporaryDirectory();
       final platform = Platform.isMacOS ? 'macos' : 'windows';
-      final fileName = 'code-doc-tool-${version}-$platform.zip';
+      final fileName = 'code-doc-tool-$version-$platform.zip';
       final filePath = '${tempDir.path}/$fileName';
       final file = File(filePath);
 
@@ -153,7 +153,7 @@ class UpdateService {
   Future<String?> extractAndPrepare(String zipPath, String version) async {
     try {
       final tempDir = await getTemporaryDirectory();
-      final extractDirName = 'code-doc-tool-${version}';
+      final extractDirName = 'code-doc-tool-$version';
       final extractDir = Directory('${tempDir.path}/$extractDirName');
       if (await extractDir.exists()) {
         await extractDir.delete(recursive: true);
@@ -198,8 +198,18 @@ class UpdateService {
 
       if (Platform.isMacOS) {
         final newAppPath = '$extractPath/code_doc_tool.app';
-        scriptPath = '$newAppPath/update.sh';
+        scriptPath = '$extractPath/update/update.sh';
         args = [currentAppPath, newAppPath];
+
+        print('Current app path: $currentAppPath');
+        print('New app path: $newAppPath');
+        print('Script path: $scriptPath');
+
+        final scriptFile = File(scriptPath);
+        print('Script exists: ${await scriptFile.exists()}');
+        if (!await scriptFile.exists()) {
+          return false;
+        }
 
         await Process.run('chmod', ['+x', scriptPath]);
       } else {
@@ -207,15 +217,11 @@ class UpdateService {
         args = [currentAppPath, extractPath];
       }
 
-      final scriptFile = File(scriptPath);
-      if (!await scriptFile.exists()) {
-        return false;
-      }
-
       await Process.start(scriptPath, args, mode: ProcessStartMode.detached);
 
       return true;
     } catch (e) {
+      print('Run update script error: $e');
       return false;
     }
   }

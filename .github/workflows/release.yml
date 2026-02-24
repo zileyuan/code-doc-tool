@@ -24,14 +24,15 @@ jobs:
         working-directory: app
         run: flutter build macos --release
 
-      - name: Copy update script
+      - name: Prepare update script
         run: |
-          cp app/macos/update.sh app/build/macos/Build/Products/Release/code_doc_tool.app/
-          chmod +x app/build/macos/Build/Products/Release/code_doc_tool.app/update.sh
+          mkdir -p app/build/macos/Build/Products/Release/update
+          cp app/macos/update.sh app/build/macos/Build/Products/Release/update/
+          chmod +x app/build/macos/Build/Products/Release/update/update.sh
 
       - name: Create ZIP archive
         working-directory: app/build/macos/Build/Products/Release
-        run: zip -r ${{ github.workspace }}/code-doc-tool-macos.zip "code_doc_tool.app"
+        run: zip -r ${{ github.workspace }}/code-doc-tool-macos.zip "code_doc_tool.app" "update"
 
       - name: Upload Release Asset
         uses: softprops/action-gh-release@v1
