@@ -40,7 +40,17 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('软著代码文档生成工具'), centerTitle: true),
+      appBar: AppBar(
+        title: const Text('软著代码文档生成工具'),
+        centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.system_update),
+            tooltip: '检查更新',
+            onPressed: () => _showUpdateDialog(context),
+          ),
+        ],
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
         child: Column(
@@ -1094,6 +1104,200 @@ class _HomePageState extends State<HomePage> {
         return Icons.terminal;
       default:
         return Icons.insert_drive_file;
+    }
+  }
+
+  void _showUpdateDialog(BuildContext context) {
+    showDialog(context: context, builder: (context) => const UpdateDialog());
+  }
+}
+
+class UpdateDialog extends StatefulWidget {
+  const UpdateDialog({super.key});
+
+  @override
+  State<UpdateDialog> createState() => _UpdateDialogState();
+}
+
+class _UpdateDialogState extends State<UpdateDialog> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<AppState>().checkForUpdates();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<AppState>(
+      builder: (context, state, child) {
+        return AlertDialog(
+          title: Row(
+            children: [
+              const Icon(Icons.system_update),
+              const SizedBox(width: 8),
+              const Text('检查更新'),
+              const Spacer(),
+              Text(
+                '当前版本: v${state.version}',
+                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+              ),
+            ],
+          ),
+          content: SizedBox(width: 400, child: _buildContent(state)),
+          actions: _buildActions(state),
+        );
+      },
+    );
+  }
+
+  Widget _buildContent(AppState state) {
+    switch (state.updateState) {
+      case UpdateState.checking:
+        return const Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: 16),
+            Text('正在检查更新...'),
+          ],
+        );
+
+      case UpdateState.available:
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.new_releases, color: Colors.green[700]),
+                const SizedBox(width: 8),
+                Text(
+                  '发现新版本 ${state.latestRelease?.version ?? ""}',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Container(
+              constraints: const BoxConstraints(maxHeight: 150),
+              decoration: BoxDecoration(
+                color: Colors.grey[100],
+                borderRadius: BorderRadius.circular(8),
+              ),
+              padding: const EdgeInsets.all(12),
+              child: SingleChildScrollView(
+                child: Text(
+                  state.latestRelease?.releaseNotes ?? '',
+                  style: const TextStyle(fontSize: 13),
+                ),
+              ),
+            ),
+          ],
+        );
+
+      case UpdateState.downloading:
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            LinearProgressIndicator(value: state.downloadProgress),
+            const SizedBox(height: 16),
+            Text(state.updateMessage),
+          ],
+        );
+
+      case UpdateState.ready:
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.check_circle, color: Colors.green[700], size: 48),
+            const SizedBox(height: 16),
+            const Text('更新已下载完成'),
+            const SizedBox(height: 8),
+            Text(
+              '请关闭当前应用，然后从下载目录运行新版本',
+              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        );
+
+      case UpdateState.error:
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.error, color: Colors.red[700], size: 48),
+            const SizedBox(height: 16),
+            Text(state.updateMessage),
+          ],
+        );
+
+      case UpdateState.idle:
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.check_circle, color: Colors.green[700], size: 48),
+            const SizedBox(height: 16),
+            Text(
+              state.updateMessage.isNotEmpty ? state.updateMessage : '已是最新版本',
+            ),
+          ],
+        );
+    }
+  }
+
+  List<Widget> _buildActions(AppState state) {
+    switch (state.updateState) {
+      case UpdateState.available:
+        return [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('稍后更新'),
+          ),
+          ElevatedButton(
+            onPressed: () => state.downloadUpdate(),
+            child: const Text('立即下载'),
+          ),
+        ];
+
+      case UpdateState.downloading:
+        return [TextButton(onPressed: null, child: const Text('下载中...'))];
+
+      case UpdateState.ready:
+        return [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('关闭'),
+          ),
+        ];
+
+      case UpdateState.error:
+        return [
+          TextButton(
+            onPressed: () {
+              state.updateState = UpdateState.idle;
+              state.updateMessage = '';
+              Navigator.pop(context);
+            },
+            child: const Text('关闭'),
+          ),
+          ElevatedButton(
+            onPressed: () => state.checkForUpdates(),
+            child: const Text('重试'),
+          ),
+        ];
+
+      default:
+        return [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('关闭'),
+          ),
+        ];
     }
   }
 }

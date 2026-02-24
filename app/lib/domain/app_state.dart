@@ -6,8 +6,11 @@ import 'models/scan_config.dart';
 import 'services/scan_service.dart';
 import 'services/clean_service.dart';
 import 'services/export_service.dart';
+import 'services/update_service.dart';
 
 enum ProgressState { idle, scanning, cleaning, exporting, completed, error }
+
+enum UpdateState { idle, checking, available, downloading, ready, error }
 
 class AppState extends ChangeNotifier {
   List<String> sourceDirectories = [];
@@ -29,10 +32,20 @@ class AppState extends ChangeNotifier {
 
   List<CleanCode> cleanedCodes = [];
 
+  UpdateState updateState = UpdateState.idle;
+  String updateMessage = '';
+  double downloadProgress = 0.0;
+  ReleaseInfo? latestRelease;
+  String? downloadedUpdatePath;
+
   final CleanService _cleanService;
   final ExportService _exportService;
+  final UpdateService _updateService;
 
-  AppState() : _cleanService = CleanService(), _exportService = ExportService();
+  AppState()
+    : _cleanService = CleanService(),
+      _exportService = ExportService(),
+      _updateService = UpdateService();
 
   int get maxTotalLines => maxPages * linesPerPage;
   int get totalSelectedFiles => selectedFiles.length;
@@ -168,5 +181,90 @@ class AppState extends ChangeNotifier {
     progress = 0.0;
     statusMessage = '';
     notifyListeners();
+  }
+
+  Future<void> checkForUpdates() async {
+    updateState = UpdateState.checking;
+    updateMessage = '正在检查更新...';
+    notifyListeners();
+
+    try {
+      latestRelease = await _updateService.fetchLatestRelease();
+
+      if (latestRelease == null) {
+        updateState = UpdateState.error;
+        updateMessage = '无法获取版本信息';
+        notifyListeners();
+        return;
+      }
+
+      if (_updateService.isNewerVersion('v$version', latestRelease!.version)) {
+        updateState = UpdateState.available;
+        updateMessage = '发现新版本 ${latestRelease!.version}';
+      } else {
+        updateState = UpdateState.idle;
+        updateMessage = '已是最新版本';
+      }
+      notifyListeners();
+    } catch (e) {
+      updateState = UpdateState.error;
+      updateMessage = '检查更新失败: $e';
+      notifyListeners();
+    }
+  }
+
+  Future<void> downloadUpdate() async {
+    if (latestRelease == null) return;
+
+    updateState = UpdateState.downloading;
+    updateMessage = '正在下载更新...';
+    downloadProgress = 0.0;
+    notifyListeners();
+
+    try {
+      final downloadUrl = defaultTargetPlatform == TargetPlatform.macOS
+          ? latestRelease!.downloadUrlMacos
+          : latestRelease!.downloadUrlWindows;
+
+      if (downloadUrl.isEmpty) {
+        updateState = UpdateState.error;
+        updateMessage = '未找到对应平台的更新包';
+        notifyListeners();
+        return;
+      }
+
+      downloadedUpdatePath = await _updateService.downloadUpdate(downloadUrl, (
+        progress,
+      ) {
+        downloadProgress = progress;
+        updateMessage = '正在下载更新... ${(progress * 100).toStringAsFixed(0)}%';
+        notifyListeners();
+      });
+
+      if (downloadedUpdatePath == null) {
+        updateState = UpdateState.error;
+        updateMessage = '下载失败';
+        notifyListeners();
+        return;
+      }
+
+      final extracted = await _updateService.extractAndPrepare(
+        downloadedUpdatePath!,
+      );
+      if (!extracted) {
+        updateState = UpdateState.error;
+        updateMessage = '解压失败';
+        notifyListeners();
+        return;
+      }
+
+      updateState = UpdateState.ready;
+      updateMessage = '更新已准备就绪，请重启应用完成更新';
+      notifyListeners();
+    } catch (e) {
+      updateState = UpdateState.error;
+      updateMessage = '下载更新失败: $e';
+      notifyListeners();
+    }
   }
 }
