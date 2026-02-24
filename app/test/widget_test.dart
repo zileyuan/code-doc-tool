@@ -5,6 +5,6 @@ void main() {
   testWidgets('App initialization test', (WidgetTester tester) async {
     await tester.pumpWidget(const CodeDocToolApp());
 
-    expect(find.text('源代码归档与软著文档生成工具'), findsOneWidget);
+    expect(find.text('软著代码文档生成工具'), findsOneWidget);
   });
 }

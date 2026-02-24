@@ -1,5 +1,5 @@
 name: code_doc_tool
-description: "源代码归档与软著文档生成工具"
+description: "软著代码文档生成工具"
 publish_to: 'none'
 version: 1.0.0+1
 

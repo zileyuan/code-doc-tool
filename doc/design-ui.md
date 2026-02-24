@@ -5,7 +5,7 @@
 ### 1.1 主窗口结构
 ```
 ┌─────────────────────────────────────────────────────────┐
-│  [App Bar]  源代码归档工具                    [设置]    │
+│  [App Bar]  软著代码文档生成工具                    [设置]    │
 ├─────────────────────────────────────────────────────────┤
 │                                                         │
 │  ┌───────────────────────────────────────────────┐     │
@@ -495,7 +495,7 @@ MaterialApp(
 class AppLocalizations {
   static const Map<String, Map<String, String>> _localizedValues = {
     'zh': {
-      'app_title': '源代码归档工具',
+      'app_title': '软著代码文档生成工具',
       'add_directory': '添加目录',
       'generate_document': '生成文档',
     },
