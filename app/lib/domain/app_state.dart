@@ -183,6 +183,9 @@ class AppState extends ChangeNotifier {
     progressState = ProgressState.idle;
     progress = 0.0;
     statusMessage = '';
+    scannedFiles.clear();
+    selectedFiles.clear();
+    cleanedCodes.clear();
     notifyListeners();
   }
 
