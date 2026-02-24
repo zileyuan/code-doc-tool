@@ -258,7 +258,7 @@ class _HomePageState extends State<HomePage> {
                             spacing: 8,
                             runSpacing: 4,
                             children: [
-                              ..._getCommonExtensions().map((ext) {
+                              ..._getCommonExtensions(state).map((ext) {
                                 final isSelected = state.allowedExtensions
                                     .contains(ext);
                                 return FilterChip(
@@ -704,8 +704,12 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  List<String> _getCommonExtensions() {
-    return ScanConfig.defaultExtensions.toList()..sort();
+  List<String> _getCommonExtensions(AppState state) {
+    final allExtensions = <String>{
+      ...ScanConfig.defaultExtensions,
+      ...state.allowedExtensions,
+    };
+    return allExtensions.toList()..sort();
   }
 
   void _toggleExtension(AppState state, String ext, bool selected) {
@@ -799,26 +803,46 @@ class _HomePageState extends State<HomePage> {
             ),
             content: SizedBox(
               width: 450,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: addController,
-                          decoration: const InputDecoration(
-                            hintText: '输入目录名（如：node_modules）',
-                            border: OutlineInputBorder(),
-                            isDense: true,
-                            contentPadding: EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 10,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: addController,
+                            decoration: const InputDecoration(
+                              hintText: '输入目录名（如：node_modules）',
+                              border: OutlineInputBorder(),
+                              isDense: true,
+                              contentPadding: EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 10,
+                              ),
                             ),
+                            onSubmitted: (value) {
+                              final dir = value.trim();
+                              if (dir.isNotEmpty &&
+                                  !state.excludedDirectories.contains(dir)) {
+                                final newDirs = Set<String>.from(
+                                  state.excludedDirectories,
+                                );
+                                newDirs.add(dir);
+                                state.updateFilterConfig(
+                                  excludedDirectories: newDirs,
+                                );
+                                addController.clear();
+                                setState(() {});
+                              }
+                            },
                           ),
-                          onSubmitted: (value) {
-                            final dir = value.trim();
+                        ),
+                        const SizedBox(width: 8),
+                        ElevatedButton(
+                          onPressed: () {
+                            final dir = addController.text.trim();
                             if (dir.isNotEmpty &&
                                 !state.excludedDirectories.contains(dir)) {
                               final newDirs = Set<String>.from(
@@ -832,133 +856,115 @@ class _HomePageState extends State<HomePage> {
                               setState(() {});
                             }
                           },
+                          child: const Text('添加'),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: searchController,
+                      decoration: InputDecoration(
+                        hintText: '搜索筛选目录名...',
+                        prefixIcon: const Icon(Icons.search, size: 20),
+                        suffixIcon: searchQuery.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear, size: 18),
+                                onPressed: () {
+                                  searchController.clear();
+                                  setState(() => searchQuery = '');
+                                },
+                              )
+                            : null,
+                        border: const OutlineInputBorder(),
+                        isDense: true,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      ElevatedButton(
-                        onPressed: () {
-                          final dir = addController.text.trim();
-                          if (dir.isNotEmpty &&
-                              !state.excludedDirectories.contains(dir)) {
-                            final newDirs = Set<String>.from(
-                              state.excludedDirectories,
-                            );
-                            newDirs.add(dir);
-                            state.updateFilterConfig(
-                              excludedDirectories: newDirs,
-                            );
-                            addController.clear();
-                            setState(() {});
-                          }
-                        },
-                        child: const Text('添加'),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: searchController,
-                    decoration: InputDecoration(
-                      hintText: '搜索筛选目录名...',
-                      prefixIcon: const Icon(Icons.search, size: 20),
-                      suffixIcon: searchQuery.isNotEmpty
-                          ? IconButton(
-                              icon: const Icon(Icons.clear, size: 18),
-                              onPressed: () {
-                                searchController.clear();
-                                setState(() => searchQuery = '');
-                              },
-                            )
-                          : null,
-                      border: const OutlineInputBorder(),
-                      isDense: true,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 10,
-                      ),
+                      onChanged: (value) {
+                        setState(() => searchQuery = value);
+                      },
                     ),
-                    onChanged: (value) {
-                      setState(() => searchQuery = value);
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Text(
-                        searchQuery.isEmpty
-                            ? '排除目录列表：'
-                            : '筛选结果（${filteredDirs.length}）：',
-                        style: const TextStyle(fontWeight: FontWeight.w500),
-                      ),
-                      const Spacer(),
-                      if (filteredDirs.isNotEmpty)
-                        TextButton(
-                          onPressed: () {
-                            final newDirs = Set<String>.from(
-                              state.excludedDirectories,
-                            );
-                            for (final dir in filteredDirs) {
-                              newDirs.remove(dir);
-                            }
-                            state.updateFilterConfig(
-                              excludedDirectories: newDirs,
-                            );
-                            setState(() {});
-                          },
-                          child: const Text(
-                            '删除筛选结果',
-                            style: TextStyle(fontSize: 12),
-                          ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Text(
+                          searchQuery.isEmpty
+                              ? '排除目录列表：'
+                              : '筛选结果（${filteredDirs.length}）：',
+                          style: const TextStyle(fontWeight: FontWeight.w500),
                         ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Container(
-                    constraints: const BoxConstraints(maxHeight: 300),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey[300]!),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: filteredDirs.isEmpty
-                        ? Container(
-                            padding: const EdgeInsets.all(16),
-                            child: Center(
-                              child: Text(
-                                searchQuery.isEmpty ? '暂无排除目录' : '未找到匹配的目录',
-                                style: TextStyle(color: Colors.grey[500]),
-                              ),
-                            ),
-                          )
-                        : ListView.builder(
-                            shrinkWrap: true,
-                            itemCount: filteredDirs.length,
-                            itemBuilder: (context, index) {
-                              final dir = filteredDirs[index];
-                              return ListTile(
-                                dense: true,
-                                visualDensity: VisualDensity.compact,
-                                title: Text(
-                                  dir,
-                                  style: const TextStyle(fontSize: 13),
-                                ),
-                                trailing: IconButton(
-                                  icon: const Icon(Icons.close, size: 16),
-                                  onPressed: () {
-                                    final newDirs = Set<String>.from(
-                                      state.excludedDirectories,
-                                    );
-                                    newDirs.remove(dir);
-                                    state.updateFilterConfig(
-                                      excludedDirectories: newDirs,
-                                    );
-                                    setState(() {});
-                                  },
-                                ),
+                        const Spacer(),
+                        if (filteredDirs.isNotEmpty)
+                          TextButton(
+                            onPressed: () {
+                              final newDirs = Set<String>.from(
+                                state.excludedDirectories,
                               );
+                              for (final dir in filteredDirs) {
+                                newDirs.remove(dir);
+                              }
+                              state.updateFilterConfig(
+                                excludedDirectories: newDirs,
+                              );
+                              setState(() {});
                             },
+                            child: const Text(
+                              '删除筛选结果',
+                              style: TextStyle(fontSize: 12),
+                            ),
                           ),
-                  ),
-                ],
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      constraints: const BoxConstraints(maxHeight: 300),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey[300]!),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: filteredDirs.isEmpty
+                          ? Container(
+                              padding: const EdgeInsets.all(16),
+                              child: Center(
+                                child: Text(
+                                  searchQuery.isEmpty ? '暂无排除目录' : '未找到匹配的目录',
+                                  style: TextStyle(color: Colors.grey[500]),
+                                ),
+                              ),
+                            )
+                          : ListView.builder(
+                              shrinkWrap: true,
+                              itemCount: filteredDirs.length,
+                              itemBuilder: (context, index) {
+                                final dir = filteredDirs[index];
+                                return ListTile(
+                                  dense: true,
+                                  visualDensity: VisualDensity.compact,
+                                  title: Text(
+                                    dir,
+                                    style: const TextStyle(fontSize: 13),
+                                  ),
+                                  trailing: IconButton(
+                                    icon: const Icon(Icons.close, size: 16),
+                                    onPressed: () {
+                                      final newDirs = Set<String>.from(
+                                        state.excludedDirectories,
+                                      );
+                                      newDirs.remove(dir);
+                                      state.updateFilterConfig(
+                                        excludedDirectories: newDirs,
+                                      );
+                                      setState(() {});
+                                    },
+                                  ),
+                                );
+                              },
+                            ),
+                    ),
+                  ],
+                ),
               ),
             ),
             actions: [
