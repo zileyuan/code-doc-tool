@@ -45,7 +45,7 @@ class _HomePageState extends State<HomePage> {
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.system_update),
+            icon: const Icon(Icons.refresh_rounded),
             tooltip: '检查更新',
             onPressed: () => _showUpdateDialog(context),
           ),
@@ -1266,7 +1266,15 @@ class _UpdateDialogState extends State<UpdateDialog> {
         ];
 
       case UpdateState.downloading:
-        return [TextButton(onPressed: null, child: const Text('下载中...'))];
+        return [
+          TextButton(
+            onPressed: () {
+              state.cancelDownload();
+              Navigator.pop(context);
+            },
+            child: const Text('取消'),
+          ),
+        ];
 
       case UpdateState.ready:
         return [

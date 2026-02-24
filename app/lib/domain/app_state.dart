@@ -37,6 +37,7 @@ class AppState extends ChangeNotifier {
   double downloadProgress = 0.0;
   ReleaseInfo? latestRelease;
   String? downloadedUpdatePath;
+  bool _cancelDownload = false;
 
   final CleanService _cleanService;
   final ExportService _exportService;
@@ -216,6 +217,7 @@ class AppState extends ChangeNotifier {
   Future<void> downloadUpdate() async {
     if (latestRelease == null) return;
 
+    _cancelDownload = false;
     updateState = UpdateState.downloading;
     updateMessage = '正在下载更新...';
     downloadProgress = 0.0;
@@ -239,7 +241,14 @@ class AppState extends ChangeNotifier {
         downloadProgress = progress;
         updateMessage = '正在下载更新... ${(progress * 100).toStringAsFixed(0)}%';
         notifyListeners();
-      });
+      }, () => _cancelDownload);
+
+      if (_cancelDownload) {
+        updateState = UpdateState.available;
+        updateMessage = '下载已取消';
+        notifyListeners();
+        return;
+      }
 
       if (downloadedUpdatePath == null) {
         updateState = UpdateState.error;
@@ -266,5 +275,9 @@ class AppState extends ChangeNotifier {
       updateMessage = '下载更新失败: $e';
       notifyListeners();
     }
+  }
+
+  void cancelDownload() {
+    _cancelDownload = true;
   }
 }

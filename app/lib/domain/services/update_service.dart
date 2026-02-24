@@ -83,6 +83,7 @@ class UpdateService {
   Future<String?> downloadUpdate(
     String url,
     Function(double) onProgress,
+    bool Function() isCancelled,
   ) async {
     try {
       final tempDir = await getTemporaryDirectory();
@@ -107,6 +108,13 @@ class UpdateService {
       final sink = file.openWrite();
       try {
         await for (final chunk in response.stream) {
+          if (isCancelled()) {
+            await sink.close();
+            if (await file.exists()) {
+              await file.delete();
+            }
+            return null;
+          }
           sink.add(chunk);
           downloaded += chunk.length;
           if (contentLength > 0) {
@@ -115,6 +123,13 @@ class UpdateService {
         }
       } finally {
         await sink.close();
+      }
+
+      if (isCancelled()) {
+        if (await file.exists()) {
+          await file.delete();
+        }
+        return null;
       }
 
       if (await file.exists() && await file.length() > 0) {
