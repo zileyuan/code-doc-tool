@@ -645,28 +645,20 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _addDirectory(BuildContext context) async {
-    debugPrint('===== _addDirectory called =====');
     try {
       final result = await FilePicker.platform.getDirectoryPath(
         dialogTitle: '选择源代码目录',
       );
-      debugPrint('===== FilePicker result: $result =====');
       if (result != null && context.mounted) {
         context.read<AppState>().addDirectory(result);
-        debugPrint('===== Directory added: $result =====');
       }
-    } catch (e, stackTrace) {
-      debugPrint('===== Error in _addDirectory: $e =====');
-      debugPrint('StackTrace: $stackTrace');
+    } catch (e) {
+      // ignore
     }
   }
 
   Future<void> _generateDocument(BuildContext context) async {
-    debugPrint('===== _generateDocument called =====');
     final state = context.read<AppState>();
-
-    debugPrint('===== selectedFiles: ${state.selectedFiles.length} =====');
-    debugPrint('===== softwareName: ${state.softwareName} =====');
 
     if (state.selectedFiles.isEmpty) {
       ScaffoldMessenger.of(
@@ -689,7 +681,6 @@ class _HomePageState extends State<HomePage> {
       return;
     }
 
-    debugPrint('===== Opening save file dialog =====');
     final outputPath = await FilePicker.platform.saveFile(
       dialogTitle: '保存Word文档',
       fileName: '${state.softwareName}_${state.version}.docx',
@@ -697,7 +688,6 @@ class _HomePageState extends State<HomePage> {
       allowedExtensions: ['docx'],
     );
 
-    debugPrint('===== outputPath: $outputPath =====');
     if (outputPath != null && context.mounted) {
       await state.cleanAndExport(outputPath);
     }
