@@ -20,6 +20,7 @@ class CodeCleaner {
       'html': HTMLCleanStrategy(),
       'shell': ShellCleanStrategy(),
       'sql': SQLCleanStrategy(),
+      'css': CSSCleanStrategy(),
     };
   }
 
@@ -196,6 +197,9 @@ class LanguageMapper {
     '.html': ['html'],
     '.htm': ['html'],
     '.xml': ['html'],
+    '.css': ['css'],
+    '.scss': ['css'],
+    '.less': ['css'],
     '.sql': ['sql'],
   };
 
@@ -431,6 +435,60 @@ class SQLCleanStrategy implements CleanStrategy {
             i += 2;
             break;
           }
+          i++;
+        }
+        continue;
+      }
+
+      buffer.write(code[i]);
+      i++;
+    }
+
+    return buffer.toString();
+  }
+
+  @override
+  String removeEmptyLines(String code) {
+    return code.split('\n').where((line) => line.trim().isNotEmpty).join('\n');
+  }
+}
+
+class CSSCleanStrategy implements CleanStrategy {
+  @override
+  String removeComments(String code) {
+    final buffer = StringBuffer();
+    var i = 0;
+
+    while (i < code.length) {
+      if (i < code.length - 1 && code[i] == '/' && code[i + 1] == '*') {
+        i += 2;
+        while (i < code.length - 1) {
+          if (code[i] == '*' && code[i + 1] == '/') {
+            i += 2;
+            break;
+          }
+          i++;
+        }
+        continue;
+      }
+
+      if (code[i] == '"' || code[i] == "'") {
+        final quote = code[i];
+        buffer.write(code[i]);
+        i++;
+        while (i < code.length && code[i] != quote) {
+          if (code[i] == '\\' && i + 1 < code.length) {
+            buffer.write(code[i]);
+            i++;
+            buffer.write(code[i]);
+            i++;
+          } else {
+            buffer.write(code[i]);
+            i++;
+          }
+        }
+        if (i < code.length) {
+          buffer.write(code[i]);
           i++;
         }
         continue;

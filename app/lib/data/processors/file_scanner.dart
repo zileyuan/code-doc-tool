@@ -3,19 +3,32 @@ import 'package:path/path.dart' as p;
 import '../../domain/models/source_file.dart';
 import '../../domain/models/scan_config.dart';
 import '../../infrastructure/encoding/encoding_detector.dart';
+import '../../infrastructure/security/path_validator.dart';
 
 class FileScanner {
   final ScanConfig config;
   final EncodingDetector encodingDetector;
+  final PathValidator pathValidator;
 
-  FileScanner({required this.config, EncodingDetector? encodingDetector})
-    : encodingDetector = encodingDetector ?? EncodingDetector();
+  FileScanner({
+    required this.config,
+    EncodingDetector? encodingDetector,
+    PathValidator? pathValidator,
+  }) : encodingDetector = encodingDetector ?? EncodingDetector(),
+       pathValidator = pathValidator ?? PathValidator();
 
   Future<List<SourceFile>> scan(List<String> rootPaths) async {
     final files = <SourceFile>[];
 
     for (final rootPath in rootPaths) {
-      await for (final file in scanDirectory(rootPath)) {
+      final validationResult = await pathValidator.validateDirectory(rootPath);
+      if (!validationResult.isValid) {
+        throw ScannerException(validationResult.error ?? '路径验证失败');
+      }
+
+      await for (final file in scanDirectory(
+        validationResult.normalizedPath!,
+      )) {
         files.add(file);
       }
     }
@@ -40,12 +53,19 @@ class FileScanner {
   }
 
   Future<SourceFile?> _processFile(File file, String rootPath) async {
-    final extension = p.extension(file.path).toLowerCase();
+    final filePath = file.absolute.path;
+
+    final validation = await pathValidator.validateFile(filePath);
+    if (!validation.isValid) {
+      return null;
+    }
+
+    final extension = p.extension(filePath).toLowerCase();
     if (!config.allowedExtensions.contains(extension)) {
       return null;
     }
 
-    final relativePath = p.relative(file.path, from: rootPath);
+    final relativePath = p.relative(filePath, from: rootPath);
     if (_isInExcludedDirectory(relativePath)) {
       return null;
     }
@@ -64,9 +84,9 @@ class FileScanner {
     final stat = await file.stat();
 
     return SourceFile(
-      path: file.absolute.path,
+      path: filePath,
       relativePath: relativePath,
-      name: p.basename(file.path),
+      name: p.basename(filePath),
       extension: extension,
       size: fileSize,
       encoding: encoding,

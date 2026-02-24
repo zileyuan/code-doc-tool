@@ -112,11 +112,6 @@ class LanguageMapper {
     // SQL
     '.sql': ['sql'],
   };
-  
-  static List<String> getLanguages(String extension) {
-    return extensionToLanguage[extension.toLowerCase()] ?? ['c-style'];
-  }
-}
 ```
 
 ### 3.2 C-Style 策略实现

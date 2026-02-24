@@ -32,7 +32,6 @@
   - 排除目录
   - 性能优化
   - 并发扫描
-  - 缓存机制
   - 错误处理
 
 - **[design-code-cleaner.md](./design-code-cleaner.md)** - 代码清洗模块设计

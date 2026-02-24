@@ -210,44 +210,54 @@ class FileScanner {
 ## 4. 路径验证
 
 ### 4.1 PathValidator 实现
+
+路径验证器确保只处理安全的文件路径，防止路径遍历攻击和访问系统敏感目录。
+
 ```dart
 class PathValidator {
-  static const _dangerousPaths = [
-    '/etc',
-    '/usr',
-    '/bin',
-    '/sbin',
-    '/root',
-    'C:\\Windows',
-    'C:\\Program Files',
-  ];
+  // 危险字符模式
+  static const _dangerousPatterns = ['../', '..\\', '~', '|', '>', '<', '\$', '`', ';', '&'];
   
-  Future<bool> isSafePath(String inputPath) async {
-    final normalizedPath = path.normalize(inputPath);
-    
-    // 检查是否是危险路径
-    for (final dangerous in _dangerousPaths) {
-      if (normalizedPath.startsWith(dangerous)) {
-        return false;
-      }
-    }
-    
-    // 检查路径遍历攻击
-    if (normalizedPath.contains('..')) {
-      return false;
-    }
-    
-    return true;
+  // 危险文件扩展名
+  static const _dangerousExtensions = ['.exe', '.bat', '.cmd', '.sh', '.ps1', '.dll', '.so', '.dylib'];
+  
+  // 验证路径安全性
+  Future<PathValidationResult> validate(String path) async {
+    // 1. 检查危险字符
+    // 2. 规范化路径
+    // 3. 解析符号链接
+    // 4. 检查是否在系统目录内
   }
   
-  Future<bool> isAllowedDir(String dirPath, List<String> allowedRoots) async {
-    final absolute = path.absolute(dirPath);
-    return allowedRoots.any((root) => 
-      absolute.startsWith(path.absolute(root))
-    );
+  // 验证文件路径
+  Future<PathValidationResult> validateFile(String path) async {
+    // 额外检查文件是否存在、扩展名是否安全
   }
+  
+  // 验证目录路径
+  Future<PathValidationResult> validateDirectory(String path) async {
+    // 检查目录是否存在
+  }
+  
+  // 检测符号链接
+  Future<bool> isSymlink(String path) async;
+  
+  // 解析符号链接
+  Future<String?> resolveSymlink(String path) async;
 }
 ```
+
+**验证流程**：
+1. 检查路径是否包含危险字符（`..`、`~`、`|` 等）
+2. 规范化路径格式
+3. 解析符号链接到真实路径
+4. 检查是否在系统敏感目录内（如 `/System`、`/etc`、`C:\Windows`）
+5. 对于文件，额外检查扩展名是否安全
+
+**系统保护目录**：
+- Windows: `C:\Windows`、`C:\Program Files`、`C:\System`
+- macOS: `/System`、`/Library`、`/usr`、`/bin`、`/etc`
+- Linux: `/bin`、`/sbin`、`/usr`、`/etc`、`/var`、`/sys`、`/proc`
 
 ## 5. 编码检测
 
@@ -429,42 +439,6 @@ class ParallelScanner {
     
     return files;
   }
-}
-```
-
-### 7.2 缓存机制
-```dart
-class ScanCache {
-  final Map<String, ScanResult> _cache = {};
-  final Duration cacheExpiry;
-  
-  ScanCache({this.cacheExpiry = const Duration(minutes: 30)});
-  
-  Future<List<SourceFile>?> getCached(String path) async {
-    final cached = _cache[path];
-    if (cached == null) return null;
-    
-    if (DateTime.now().difference(cached.timestamp) > cacheExpiry) {
-      _cache.remove(path);
-      return null;
-    }
-    
-    return cached.files;
-  }
-  
-  void cacheResult(String path, List<SourceFile> files) {
-    _cache[path] = ScanResult(
-      files: files,
-      timestamp: DateTime.now(),
-    );
-  }
-}
-
-class ScanResult {
-  final List<SourceFile> files;
-  final DateTime timestamp;
-  
-  ScanResult({required this.files, required this.timestamp});
 }
 ```
 

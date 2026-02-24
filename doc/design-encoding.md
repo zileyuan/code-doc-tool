@@ -589,32 +589,7 @@ class EncodingErrorHandler {
 
 ## 8. 性能优化
 
-### 8.1 缓存机制
-```dart
-class EncodingCache {
-  final Map<String, EncodingResult> _cache = {};
-  final Duration expiry;
-  
-  EncodingCache({this.expiry = const Duration(minutes: 30)});
-  
-  EncodingResult? get(String filePath) {
-    final cached = _cache[filePath];
-    if (cached == null) return null;
-    
-    return cached;
-  }
-  
-  void put(String filePath, EncodingResult result) {
-    _cache[filePath] = result;
-  }
-  
-  void clear() {
-    _cache.clear();
-  }
-}
-```
-
-### 8.2 批量检测
+### 8.1 批量检测
 ```dart
 class BatchEncodingDetector {
   final EncodingDetector detector;
