@@ -235,13 +235,16 @@ class AppState extends ChangeNotifier {
         return;
       }
 
-      downloadedUpdatePath = await _updateService.downloadUpdate(downloadUrl, (
-        progress,
-      ) {
-        downloadProgress = progress;
-        updateMessage = '正在下载更新... ${(progress * 100).toStringAsFixed(0)}%';
-        notifyListeners();
-      }, () => _cancelDownload);
+      downloadedUpdatePath = await _updateService.downloadUpdate(
+        downloadUrl,
+        latestRelease!.version,
+        (progress) {
+          downloadProgress = progress;
+          updateMessage = '正在下载更新... ${(progress * 100).toStringAsFixed(0)}%';
+          notifyListeners();
+        },
+        () => _cancelDownload,
+      );
 
       if (_cancelDownload) {
         updateState = UpdateState.available;
@@ -257,10 +260,11 @@ class AppState extends ChangeNotifier {
         return;
       }
 
-      final extracted = await _updateService.extractAndPrepare(
+      final extractPath = await _updateService.extractAndPrepare(
         downloadedUpdatePath!,
+        latestRelease!.version,
       );
-      if (!extracted) {
+      if (extractPath == null) {
         updateState = UpdateState.error;
         updateMessage = '解压失败';
         notifyListeners();
@@ -268,7 +272,7 @@ class AppState extends ChangeNotifier {
       }
 
       updateState = UpdateState.ready;
-      updateMessage = '更新已准备就绪，请重启应用完成更新';
+      updateMessage = '更新已准备就绪\n解压路径: $extractPath';
       notifyListeners();
     } catch (e) {
       updateState = UpdateState.error;

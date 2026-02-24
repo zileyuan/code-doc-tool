@@ -82,12 +82,14 @@ class UpdateService {
 
   Future<String?> downloadUpdate(
     String url,
+    String version,
     Function(double) onProgress,
     bool Function() isCancelled,
   ) async {
     try {
       final tempDir = await getTemporaryDirectory();
-      final fileName = url.split('/').last;
+      final platform = Platform.isMacOS ? 'macos' : 'windows';
+      final fileName = 'code-doc-tool-${version}-$platform.zip';
       final filePath = '${tempDir.path}/$fileName';
       final file = File(filePath);
 
@@ -141,10 +143,11 @@ class UpdateService {
     }
   }
 
-  Future<bool> extractAndPrepare(String zipPath) async {
+  Future<String?> extractAndPrepare(String zipPath, String version) async {
     try {
       final tempDir = await getTemporaryDirectory();
-      final extractDir = Directory('${tempDir.path}/update_extract');
+      final extractDirName = 'code-doc-tool-${version}';
+      final extractDir = Directory('${tempDir.path}/$extractDirName');
       if (await extractDir.exists()) {
         await extractDir.delete(recursive: true);
       }
@@ -164,18 +167,9 @@ class UpdateService {
         }
       }
 
-      return true;
+      return extractDir.path;
     } catch (e) {
-      return false;
-    }
-  }
-
-  String getUpdateScriptPath() {
-    final scriptDir = Platform.resolvedExecutable;
-    if (Platform.isMacOS) {
-      return '${scriptDir.replaceAll('/Contents/MacOS/code_doc_tool', '')}/update.sh';
-    } else {
-      return '${File(scriptDir).parent.path}/update.bat';
+      return null;
     }
   }
 }
