@@ -3,7 +3,7 @@
 ## 1. 技术栈选型
 
 ### 1.1 核心技术
-- **框架**: Flutter 3.38
+- **框架**: Flutter 3.10.8+
 - **语言**: Dart 3.x
 - **平台**: Desktop (Windows / macOS / Linux)
 
@@ -12,23 +12,29 @@
 dependencies:
   flutter:
     sdk: flutter
-  
+
   # 文件系统操作
-  path_provider: ^2.1.0
-  file_picker: ^6.1.0
-  
+  path_provider: ^2.1.5
+  file_picker: ^8.1.7
+  path: ^1.9.0
+
   # 编码检测
-  charset_converter: ^2.1.0
-  
-  # Word文档生成
-  docx_template: ^0.3.0
-  archive: ^3.4.0
-  
+  charset_converter: ^2.2.1
+
+  # Word文档生成 (直接使用 archive + xml 构建 OOXML)
+  archive: ^4.0.4
+  xml: ^6.5.0
+
   # 状态管理
-  provider: ^6.1.0
-  
-  # 正则表达式
-  regex: ^0.1.0
+  provider: ^6.1.2
+
+  # 网络
+  http: ^1.2.0
+  url_launcher: ^6.2.0
+  package_info_plus: ^8.0.0
+
+  # UI
+  cupertino_icons: ^1.0.8
 ```
 
 ## 2. 架构分层设计

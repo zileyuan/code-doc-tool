@@ -20,11 +20,13 @@
 | C/C++ | .c, .cpp, .h, .hpp |
 | C# | .cs |
 | Swift | .swift |
+| Objective-C | .m |
 | Go | .go |
 | Rust | .rs |
 | JavaScript | .js, .jsx |
 | TypeScript | .ts, .tsx |
 | Python | .py |
+| PHP | .php |
 | Ruby | .rb |
 | Shell | .sh, .bash |
 | HTML/XML | .html, .htm, .xml |
@@ -82,8 +84,8 @@ flutter build windows --release
 
 ## 技术栈
 
-- **框架**: Flutter 3.38
-- **语言**: Dart
+- **框架**: Flutter 3.10.8+
+- **语言**: Dart 3.x
 - **平台**: macOS / Windows
 
 ## 项目结构

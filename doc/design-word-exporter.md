@@ -14,18 +14,21 @@
 ## 2. 类设计
 
 ### 2.1 核心类图
+> **实现说明**: WordExporter 直接使用 `archive` 和 `xml` 库构建 OOXML 格式的 docx 文件，不依赖外部模板库。
+
 ```
 ┌─────────────────┐
 │  WordExporter   │
 ├─────────────────┤
 │ - config: ExportConfig │
-│ - template: WordTemplate │
 ├─────────────────┤
-│ + export(codes: List<CleanCode>): Future<void> │
-│ - _createDocument(): Document │
-│ - _addSection(code: CleanCode): void │
-│ - _setHeader(doc: Document): void │
-│ - _paginate(lines: List<String>): List<List<String>> │
+│ + export(codes, outputPath): Future<ExportResult> │
+│ - _createDocument(codes): List<int> │
+│ - _addContentTypes(archive): void │
+│ - _addDocument(archive, codes): void │
+│ - _addHeader(archive): void │
+│ - _addFooter(archive): void │
+│ - _addStyles(archive): void │
 └─────────────────┘
          │
          ├─── uses ───▶ ┌──────────────────┐
@@ -33,16 +36,17 @@
          │              ├──────────────────┤
          │              │ - softwareName: String │
          │              │ - version: String │
-         │              │ - linesPerPage: int │
-         │              │ - fontSize: int │
+         │              │ - linesPerPage: int (默认50) │
+         │              │ - maxPages: int (默认60) │
+         │              │ - fontName: String │
+         │              │ - fontSize: int (默认10) │
+         │              │ - showLineNumber: bool │
+         │              │ - showFileName: bool │
          │              └──────────────────┘
          │
          └─── uses ───▶ ┌──────────────────┐
-                        │ PageLayout       │
-                        ├──────────────────┤
-                        │ - pageSize: PageSize │
-                        │ - margins: Margins │
-                        │ - lineSpacing: double │
+                        │ Archive (zip)    │
+                        │ XmlBuilder       │
                         └──────────────────┘
 ```
 
@@ -53,51 +57,50 @@
 class ExportConfig {
   final String softwareName;        // 软件名称
   final String version;             // 版本号
-  final int linesPerPage;           // 每页行数（固定50）
-  final int maxPages;               // 最大页数（固定60）
-  final String fontName;            // 字体名称
-  final int fontSize;               // 字体大小（固定10磅）
-  
+  final int linesPerPage;           // 每页行数（默认50）
+  final int maxPages;               // 最大页数（默认60）
+  final String fontName;            // 字体名称（默认Consolas）
+  final int fontSize;               // 字体大小（默认10磅）
+  final bool showLineNumber;        // 是否显示行号（默认false）
+  final bool showFileName;          // 是否显示文件名（默认true）
+
   ExportConfig({
     required this.softwareName,
     required this.version,
-    this.linesPerPage = 50,   // 固定值，不可配置
-    this.maxPages = 60,       // 固定值，不可配置
+    this.linesPerPage = 50,
+    this.maxPages = 60,
     this.fontName = 'Consolas',
-    this.fontSize = 10,       // 固定值，不可配置
+    this.fontSize = 10,
+    this.showLineNumber = false,
+    this.showFileName = true,
   });
-  
-  // 计算最大允许的总行数（3000行）
+
+  // 计算最大允许的总行数（默认3000行）
   int get maxTotalLines => maxPages * linesPerPage;
+
+  // copyWith 方法支持更新配置
+  ExportConfig copyWith({...});
 }
 ```
 
-> **注意**: 根据需求变更，`linesPerPage`、`maxPages` 和 `fontSize` 为固定值，用户无需配置。
-
-#### PageLayout
+#### ExportResult
 ```dart
-class PageLayout {
-  final double width;               // 页面宽度（磅）
-  final double height;              // 页面高度（磅）
-  final double marginTop;           // 上边距
-  final double marginBottom;        // 下边距
-  final double marginLeft;          // 左边距
-  final double marginRight;         // 右边距
-  final double lineSpacing;         // 行间距
-  
-  static PageLayout a4() {
-    return PageLayout(
-      width: 595.0,     // A4 宽度
-      height: 842.0,    // A4 高度
-      marginTop: 72.0,  // 1 英寸
-      marginBottom: 72.0,
-      marginLeft: 72.0,
-      marginRight: 72.0,
-      lineSpacing: 1.0,
-    );
-  }
+class ExportResult {
+  final int totalPages;        // 实际生成的页数
+  final int totalLines;        // 实际导出的代码行数
+  final bool isTruncated;      // 是否因超出限制而被截断
+  final String outputPath;     // 输出文件路径
+
+  ExportResult({
+    required this.totalPages,
+    required this.totalLines,
+    required this.isTruncated,
+    required this.outputPath,
+  });
 }
 ```
+
+> **注意**: 文档实际直接硬编码页面布局（A4尺寸、边距等）在 XML 生成方法中，没有独立的 PageLayout 类。
 
 ## 3. Word 文档结构
 

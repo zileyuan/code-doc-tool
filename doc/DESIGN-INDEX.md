@@ -2,11 +2,11 @@
 
 ## 1. 文档清单
 
-本文档整理了"软著代码文档生成工具"的详细设计文档，所有设计基于 Flutter 3.38 技术栈。
+本文档整理了"软著代码文档生成工具"的详细设计文档，所有设计基于 Flutter 3.10.8+ 技术栈。
 
 ### 1.1 架构与概览
 - **[design-architecture.md](./design-architecture.md)** - 技术架构设计
-  - 技术栈选型（Flutter 3.38）
+  - 技术栈选型（Flutter 3.10.8+）
   - 分层架构设计
   - 目录结构设计
   - 核心模块划分
@@ -73,10 +73,16 @@
   - 自动安装脚本
   - 更新状态管理
 
+- **[testing.md](./testing.md)** - 测试计划
+  - 测试策略与范围
+  - 单元测试用例
+  - 集成测试场景
+  - 性能基准
+
 ## 2. 技术栈
 
 ### 2.1 核心技术
-- **框架**: Flutter 3.38
+- **框架**: Flutter 3.10.8+
 - **语言**: Dart 3.x
 - **平台**: Desktop (Windows / macOS / Linux)
 
@@ -85,20 +91,29 @@
 dependencies:
   flutter:
     sdk: flutter
-  
+
   # 文件系统
-  path_provider: ^2.1.0
-  file_picker: ^6.1.0
-  
+  path_provider: ^2.1.5
+  file_picker: ^8.1.7
+  path: ^1.9.0
+
   # 编码处理
-  charset_converter: ^2.1.0
-  
-  # Word 文档
-  docx_template: ^0.3.0
-  archive: ^3.4.0
-  
+  charset_converter: ^2.2.1
+
+  # Word 文档 (直接使用 archive + xml 构建 OOXML，不使用 docx_template)
+  archive: ^4.0.4
+  xml: ^6.5.0
+
   # 状态管理
-  provider: ^6.1.0
+  provider: ^6.1.2
+
+  # 网络
+  http: ^1.2.0
+  url_launcher: ^6.2.0
+  package_info_plus: ^8.0.0
+
+  # UI
+  cupertino_icons: ^1.0.8
 ```
 
 ## 3. 系统架构

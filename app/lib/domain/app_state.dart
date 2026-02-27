@@ -98,8 +98,9 @@ class AppState extends ChangeNotifier {
     Set<String>? excludedDirectories,
   }) {
     if (allowedExtensions != null) this.allowedExtensions = allowedExtensions;
-    if (excludedDirectories != null)
+    if (excludedDirectories != null) {
       this.excludedDirectories = excludedDirectories;
+    }
     notifyListeners();
   }
 
