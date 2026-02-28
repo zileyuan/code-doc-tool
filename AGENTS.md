@@ -161,3 +161,30 @@ testWidgets('App initialization test', (WidgetTester tester) async {
 - **Add source file type**: Edit `app/lib/data/processors/file_scanner.dart`
 - **Add export format**: Add class in `app/lib/infrastructure/exporters/`
 - **Modify lints**: Edit `app/analysis_options.yaml`
+
+---
+
+## Quick Reference
+
+### Commands
+
+| Task | Command |
+|------|----------|
+| Clean build | `flutter clean && flutter pub get` |
+| Format code | `dart format lib/ test/` |
+| Check formatting | `dart format --set-exit-if-changed lib/` |
+
+### Architecture Rules
+
+- **Models**: Pure data classes with `final` fields, no logic
+- **Services**: Business logic, orchestrate processors  
+- **Processors**: Low-level data operations
+- **Infrastructure**: I/O, encoding, export, security
+- **UI**: Widgets only, delegate to Provider state
+
+### Key Patterns
+
+- **Constructor Injection**: `Service({Dep? dep}) : dep = dep ?? Dep();`
+- **Custom Exceptions**: `class MyException implements Exception { final String message; }`
+- **State Management**: Extend `ChangeNotifier`, dispose listeners in `dispose()`
+- **Async**: Always specify return types (`Future<T>`), use `async*` for streams

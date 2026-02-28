@@ -70,8 +70,13 @@ class UpdateService {
     return latest[2] > current[2];
   }
 
+  /// Parse version string to list of integers.
+  /// Handles versions with or without 'v' prefix (e.g., 'v1.2.3' or '1.2.3').
   List<int> _parseVersion(String version) {
-    final cleanVersion = version.replaceAll('v', '');
+    // Remove 'v' or 'V' prefix if present
+    final cleanVersion = version.startsWith(RegExp(r'[vV]')) 
+        ? version.substring(1) 
+        : version;
     final parts = cleanVersion.split('.');
     return [
       int.tryParse(parts[0]) ?? 0,

@@ -45,9 +45,9 @@ class CodeCleaner {
       currentContent = strategy.removeComments(currentContent);
     }
 
-    currentContent = _removeEmptyLines(currentContent);
-    currentContent = _trimWhitespace(currentContent);
-    currentContent = _convertTabsToSpaces(currentContent);
+    currentContent = _removeEmptyLinesStatic(currentContent);
+    currentContent = _trimWhitespaceStatic(currentContent);
+    currentContent = _convertTabsToSpacesStatic(currentContent);
 
     final originalLines = content.split('\n').length;
     final cleanedLines = currentContent.split('\n').length;
@@ -108,12 +108,7 @@ class CodeCleaner {
     );
   }
 
-  String _removeEmptyLines(String content) {
-    return content
-        .split('\n')
-        .where((line) => line.trim().isNotEmpty)
-        .join('\n');
-  }
+
 
   static String _removeEmptyLinesStatic(String content) {
     return content
@@ -122,25 +117,8 @@ class CodeCleaner {
         .join('\n');
   }
 
-  String _trimWhitespace(String content) {
-    return content.split('\n').map((line) => line.trimRight()).join('\n');
-  }
-
   static String _trimWhitespaceStatic(String content) {
     return content.split('\n').map((line) => line.trimRight()).join('\n');
-  }
-
-  String _convertTabsToSpaces(String content) {
-    return content
-        .split('\n')
-        .map((line) {
-          final leadingMatch = RegExp(r'^[\t ]+').firstMatch(line);
-          if (leadingMatch == null) return line;
-          final leading = leadingMatch.group(0)!;
-          final convertedLeading = leading.replaceAll('\t', '  ');
-          return convertedLeading + line.substring(leading.length);
-        })
-        .join('\n');
   }
 
   static String _convertTabsToSpacesStatic(String content) {
@@ -155,6 +133,9 @@ class CodeCleaner {
         })
         .join('\n');
   }
+
+
+
 
   int _estimateRemovedComments(String original, String cleaned) {
     return (original.length - cleaned.length) ~/ 10;

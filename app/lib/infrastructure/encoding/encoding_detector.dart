@@ -29,7 +29,7 @@ class EncodingDetector {
       final bytes = await _readSample(file);
       return _detectFromBytes(bytes);
     } catch (e) {
-      return EncodingResult(encoding: 'UTF-8', confidence: 0.5);
+      return EncodingResult(encoding: 'UTF-8', confidence: 0.7);
     }
   }
 
@@ -60,7 +60,7 @@ class EncodingDetector {
       return gbkResult;
     }
 
-    return EncodingResult(encoding: 'UTF-8', confidence: 0.5, hasBOM: false);
+    return EncodingResult(encoding: 'UTF-8', confidence: 0.7, hasBOM: false);
   }
 
   bool _hasBOM(Uint8List bytes) {

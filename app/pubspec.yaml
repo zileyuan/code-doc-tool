@@ -1,7 +1,7 @@
 name: code_doc_tool
 description: "软著代码文档生成工具"
 publish_to: 'none'
-version: 1.0.9+9
+version: 1.0.10+10
 
 environment:
   sdk: ^3.10.8

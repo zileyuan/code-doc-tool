@@ -1,6 +1,7 @@
 import '../models/clean_code.dart';
 import '../../data/processors/code_cleaner.dart';
 import '../../infrastructure/io/file_reader.dart';
+import '../models/source_file.dart';
 
 class CleanService {
   final CodeCleaner _cleaner;
@@ -22,7 +23,7 @@ class CleanService {
     return await _cleaner.clean(content, fileName, extension);
   }
 
-  Future<List<CleanCode>> cleanFiles(List<dynamic> files) async {
+  Future<List<CleanCode>> cleanFiles(List<SourceFile> files) async {
     final results = <CleanCode>[];
 
     for (final file in files) {
