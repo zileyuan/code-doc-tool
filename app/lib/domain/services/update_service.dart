@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:archive/archive.dart';
+import 'package:flutter/foundation.dart';
 
 class ReleaseInfo {
   final String version;
@@ -57,6 +58,7 @@ class UpdateService {
       }
       return null;
     } catch (e) {
+      debugPrint('获取最新版本失败: $e');
       return null;
     }
   }
@@ -151,6 +153,7 @@ class UpdateService {
       }
       return null;
     } catch (e) {
+      debugPrint('下载更新失败: $e');
       return null;
     }
   }
@@ -182,10 +185,10 @@ class UpdateService {
 
       return extractDir.path;
     } catch (e) {
+      debugPrint('解压更新包失败: $e');
       return null;
     }
   }
-
   String getCurrentAppPath() {
     final executablePath = Platform.resolvedExecutable;
     if (Platform.isMacOS) {
@@ -221,6 +224,7 @@ class UpdateService {
 
       return true;
     } catch (e) {
+      debugPrint('运行更新脚本失败: $e');
       return false;
     }
   }

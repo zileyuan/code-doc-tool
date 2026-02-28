@@ -125,10 +125,5 @@ class ScanNotifier extends ChangeNotifier {
   List<SourceFile> getSelectedFileObjects() {
     return _scannedFiles.where((f) => _selectedFiles.contains(f.path)).toList();
   }
-  @override
-  void dispose() {
-    // Clean up resources
-    super.dispose();
-  }
 
 }

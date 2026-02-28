@@ -67,9 +67,4 @@ class ExportNotifier extends ChangeNotifier {
     _cleanedCodes.clear();
     notifyListeners();
   }
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
 }

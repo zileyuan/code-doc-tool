@@ -84,7 +84,7 @@ class DirectorySelectionWidget extends StatelessWidget {
         context.read<AppState>().addDirectory(result);
       }
     } catch (e) {
-      // ignore
+      debugPrint('目录选择失败: $e');
     }
   }
 }

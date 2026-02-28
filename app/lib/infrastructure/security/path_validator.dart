@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
 
 class PathValidationResult {
@@ -125,6 +126,7 @@ class PathValidator {
       }
       return path;
     } catch (e) {
+      debugPrint("路径规范化失败: $e");
       return null;
     }
   }
@@ -162,6 +164,7 @@ class PathValidator {
       final link = Link(path);
       return await link.exists();
     } catch (e) {
+      debugPrint("检查符号链接失败: $e");
       return false;
     }
   }
@@ -174,6 +177,7 @@ class PathValidator {
       }
       return path;
     } catch (e) {
+      debugPrint("解析符号链接失败: $e");
       return null;
     }
   }

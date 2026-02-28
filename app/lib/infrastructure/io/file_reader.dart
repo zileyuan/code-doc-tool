@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:charset_converter/charset_converter.dart';
+import 'package:flutter/foundation.dart';
 
 class ReadOnlyFileReader {
   Future<String> readAsString(
@@ -42,7 +42,8 @@ class ReadOnlyFileReader {
     } catch (e) {
       try {
         return utf8.decode(bytes);
-      } catch (_) {
+      } catch (e) {
+        debugPrint('读取文件失败: $e');
         return String.fromCharCodes(bytes);
       }
     }

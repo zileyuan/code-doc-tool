@@ -1,7 +1,7 @@
 /// 更新服务相关的自定义异常类。
 ///
 /// 用于在更新过程中抛出详细的错误信息，便于诊断问题。
-
+library;
 
 /// 获取版本信息失败
 class UpdateFetchException implements Exception {

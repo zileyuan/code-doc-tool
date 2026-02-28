@@ -30,10 +30,5 @@ class DirectoryNotifier extends ChangeNotifier {
   }
 
   bool contains(String path) => _sourceDirectories.contains(path);
-  @override
-  void dispose() {
-    // Clean up resources
-    super.dispose();
-  }
 
 }

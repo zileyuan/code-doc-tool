@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 
 class EncodingResult {
   final String encoding;
@@ -29,6 +29,7 @@ class EncodingDetector {
       final bytes = await _readSample(file);
       return _detectFromBytes(bytes);
     } catch (e) {
+      debugPrint('编码检测失败: $e');
       return EncodingResult(encoding: 'UTF-8', confidence: 0.7);
     }
   }
@@ -120,6 +121,7 @@ class EncodingDetector {
       }
       return true;
     } catch (e) {
+      debugPrint('UTF-8 验证失败: $e');
       return false;
     }
   }

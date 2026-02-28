@@ -172,10 +172,5 @@ class UpdateNotifier extends ChangeNotifier {
     _cancelDownload = false;
     notifyListeners();
   }
-  @override
-  void dispose() {
-    // Clean up resources
-    super.dispose();
-  }
 
 }
