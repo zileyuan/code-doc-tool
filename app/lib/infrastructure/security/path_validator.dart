@@ -75,7 +75,7 @@ class PathValidator {
     } catch (e) {
       return PathValidationResult(
         isValid: false,
-        error: '路径解析失败: ${e.toString()}',
+        error: '路径解析失败: $e',
       );
     }
   }

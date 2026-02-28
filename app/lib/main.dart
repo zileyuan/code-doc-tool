@@ -13,7 +13,9 @@ class CodeDocToolApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
-      providers: [ChangeNotifierProvider(create: (_) => AppState())],
+      providers: [
+        ChangeNotifierProvider(create: (_) => AppState()),
+      ],
       child: MaterialApp(
         title: '软著代码文档生成工具',
         theme: ThemeData(
